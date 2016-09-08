@@ -1,0 +1,19 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Input Example</title>
+<script src="main.js"></script>
+<body>
+Hello World!
+
+<p>Your Name: <input id='name_input' type='text'/> <button onclick="clickedOK()">Ok</button></p>
+
+<script>
+function sayHello(name) {
+	console.log('Hello ' + name + '!');
+}
+
+function clickedOK() {
+	sayHello(document.getElementById('name_input').value);
+}
+</script>
+</body>
