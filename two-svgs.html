@@ -1,0 +1,131 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>2 SVGs</title>
+<script src="d3.v4.min.js"></script>
+<link rel="stylesheet" href="main.css"/>
+<body>
+<div style="display: flex">
+	<div id='left'>
+		<p>Shift Mean:
+    	<input type="range" min="0", max="10", step="1", value="5" id="mean"/>
+    	<span id="mean_label">5</span>
+		</p>
+		<p>Change Variability:
+		  <input type="range" min="0", max= "2", step="0.2", value="1" id="var"/>
+			<span id="var_label">1.0</span>
+		</p>
+	</div>
+
+	<div id='right'>
+		<p>Shift Mean:
+			<input type="range" min="0", max="10", step="1", value="5" id="mean"/>
+			<span id="mean_label">5</span>
+		</p>
+		<p>Change Variability:
+    	<input type="range" min="0", max= "2", step="0.2", value="1" id="var"/>
+    	<span id="var_label">1.0</span>
+		</p>
+	</div>
+</div>
+<script>
+
+/// Add moveToFront functionality to d3 selections.
+d3.selection.prototype.moveToFront = function() {
+  return this.each(function(){
+    this.parentNode.appendChild(this);
+  });
+};
+
+var pop_size = 95
+  , sample_size = 3
+  , radius = 20
+  , height = 320
+  , col = d3.scaleLinear().range(['white', 'steelblue']).domain([0, 1]);
+
+function arrangeCircleData(circles, cols) {
+	circles.forEach(function(circle, i) {
+		circle.x = radius + (i % cols)*2*radius;
+		circle.y = radius + Math.floor(i/cols)*2*radius;
+	});
+}
+
+function initCircleData(count) {
+	var cs = [];
+	for (var i = 0; i < count; i++) cs.push({ x: 0, y: 0, idx: i, value: Math.random() });
+	return cs;
+}
+
+function initSVG(container) {
+	d3.select(container)
+	  .select('#mean').on('input', function() {
+	  	var mean = +this.value;
+	  	d3.select(container).select('#mean_label').text(mean);
+	  });
+
+	d3.select(container)
+	  .select('#var').on('input', function() {
+	  	var variance = +this.value;
+	  	d3.select(container).select('#var_label').text(variance.toFixed(1));
+	  });
+
+	d3.select(container)
+	  .append('svg')
+	  .attr('width', '480px')
+	  .attr('height', height + 'px')
+	  .style('border', '1px silver solid');
+}
+
+function initCircleElements(svg, data) {
+	var sel = d3.select(svg)
+	  .selectAll('circle.token')
+	  .data(data);
+
+	sel.enter().append('circle')
+	  .classed('token', true);
+
+	sel.exit().remove();
+
+	d3.select(svg).selectAll('circle.token')
+  	.attr('r', radius)
+  	.attr('cx', function(d) { return d.x })
+  	.attr('cy', function(d) { return d.y })
+  	.style('fill', function(d) { return col(d.value) })
+  	.style('stroke', 'black')
+  	.style('stroke-width', '0.2');
+}
+
+function updateCircleElements(svg, duration) {
+	d3.select(svg)
+	  .selectAll('circle.token')
+	  .transition()
+	  .duration(duration)
+	  .attr('cx', function(d) { return d.x })
+  	.attr('cy', function(d) { return d.y })
+  	.style('fill', function(d) { return col(d.value) });
+}
+
+initSVG('div#left');
+var width = d3.select('div#left svg').node().getBoundingClientRect().width
+  , cols = Math.floor(width/(2*radius));
+var cs1 = initCircleData(pop_size);
+arrangeCircleData(cs1, cols);
+initCircleElements('div#left svg', cs1);
+
+initSVG('div#right');
+var cs2 = initCircleData(pop_size);
+arrangeCircleData(cs2, cols);
+initCircleElements('div#right svg', cs2);
+
+var sample = [cs1[11], cs1[12], cs1[19], cs1[54]];
+sample.forEach(function(circle, i) {
+	circle.x = 100 + 2*radius*i; circle.y = 400;
+});
+
+d3.selectAll('div#left svg circle.token')
+	.filter(function(d) { return sample.indexOf(d) !== -1 })
+	.moveToFront();
+
+updateCircleElements('div#left svg', 2000);
+
+</script>
+</body>
